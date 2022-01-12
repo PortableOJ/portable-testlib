@@ -38,4 +38,5 @@ cmake-build-release
 /Test/temp/
 
 *.log
-/src/test/tmp/
+
+!test/*
