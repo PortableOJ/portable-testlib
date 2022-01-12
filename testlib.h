@@ -357,7 +357,9 @@ void accept(const string &desc);
 /// region 不应该使用的函数等
 
 template<class ...Args>
-void endJudge(JudgeResult judgeResult, const string &desc, const Args &...args);
+void endJudge(JudgeResult judgeResult, const char *desc, const Args &...args);
+
+void endJudge(JudgeResult judgeResult, const string &desc);
 
 /// endregion
 
@@ -377,7 +379,7 @@ char InStream::next(const string &desc, bool disableEof) {
         if (disableEof) {
             return -1;
         } else {
-            endJudge(waResult, "%s is reach the end of file.", desc.c_str());
+            endJudge(waResult, "%s is reach the end of file", desc.c_str());
         }
     }
     return buffer[cur++];
@@ -486,19 +488,14 @@ long long InStream::readLong(const string &desc) {
     readDelimiter();
     long long res = 0;
     bool flag = false;
-    char tmp = next(desc);
+    char tmp = peek();
     if (!isdigit(tmp)) {
         if (tmp == '-') {
             flag = !flag;
         } else if (tmp != '+') {
             endJudge(waResult, "get %s fail, expect number or sign, but get %c", desc.c_str(), tmp);
         }
-        tmp = next(desc);
-        if (!isdigit(tmp)) {
-            endJudge(waResult, "get %s fail, expect number or sign, but get %c", desc.c_str(), tmp);
-        }
-        res = tmp - '0';
-        tmp = peek();
+        tmp = peekNext();
     }
     while (isdigit(tmp)) {
         res = res * 10 + tmp - '0';
@@ -521,19 +518,14 @@ double InStream::readReal(const string &desc) {
     readDelimiter();
     double res = 0, d = 0.1;
     bool flag = false;
-    char tmp = next(desc);
+    char tmp = peek();
     if (!isdigit(tmp)) {
         if (tmp == '-') {
             flag = !flag;
         } else if (tmp != '+') {
             endJudge(waResult, "get %s fail, expect number or sign, but get %c", desc.c_str(), tmp);
         }
-        tmp = next(desc);
-        if (!isdigit(tmp)) {
-            endJudge(waResult, "get %s fail, expect number, but get %c", desc.c_str(), tmp);
-        }
-        res = tmp - '0';
-        tmp = peek();
+        tmp = peekNext();
     }
     while (isdigit(tmp)) {
         res = res * 10 + tmp - '0';
@@ -561,8 +553,7 @@ double InStream::readReal(double lower, double upper, const string &desc) {
 
 string InStream::readLine(int maxLen, const string &desc) {
     string res;
-    res.push_back(next(desc));
-    for (int i = 1; i < maxLen; ++i) {
+    for (int i = 0; i < maxLen; ++i) {
         char tmp = next(desc, true);
         if (tmp == '\n') break;
         res.push_back(tmp);
@@ -576,7 +567,7 @@ string InStream::readLine(int maxLen, const string &desc) {
 void InStream::getEof() {
     char res = peek();
     if (res != -1) {
-        endJudge(waResult, "The judge is completely over, but there are still bytes in the output");
+        endJudge(waResult, string("The judge is completely over, but there are still bytes in the output"));
     }
 }
 
@@ -584,7 +575,7 @@ void InStream::readEof() {
     readDelimiter();
     char res = peek();
     if (res != -1) {
-        endJudge(waResult, "The judge is completely over, but there are still bytes in the output");
+        endJudge(waResult, string("The judge is completely over, but there are still bytes in the output"));
     }
 }
 
@@ -643,9 +634,10 @@ void Result::leq(const T &lhs, const T &rhs, const string &lDesc, const string &
 }
 
 InStream inf(JudgeResult::FAIL);                                               // NOLINT(cert-err58-cpp)
-Result ouf(JudgeResult::WA), ans(JudgeResult::FAIL);      // NOLINT(cert-err58-cpp)
+Result ouf(JudgeResult::WA), anf(JudgeResult::FAIL);      // NOLINT(cert-err58-cpp)
 
 void registerTestlibCmd(int argc, char **argv) {
+#ifdef ONLINE_JUDGE
     if (argc <= 1) {
         endJudge(JudgeResult::FAIL, "Can not get the input/output file, judge fail");
     }
@@ -656,9 +648,26 @@ void registerTestlibCmd(int argc, char **argv) {
 
     int inSid = open(inputPath.relative_path().c_str(), O_RDONLY);
     int ansSid = open(ansPath.relative_path().c_str(), O_RDONLY);
+    if (inSid == -1 || ansSid == -1) {
+        endJudge(JudgeResult::FAIL, "Open file Fail");
+    }
     inf.setSid(inSid);
     ouf.setSid(0);
-    ans.setSid(ansSid);
+    anf.setSid(ansSid);
+#else
+    if (argc < 4) {
+        endJudge(JudgeResult::FAIL, string("testlib need 3 args: <input-file> <output-file> <answer-file>"));
+    }
+    int inSid = open(argv[1], O_RDONLY);
+    int outSid = open(argv[2], O_RDONLY);
+    int ansSid = open(argv[3], O_RDONLY);
+    if (inSid == -1 || outSid == -1 || ansSid == -1) {
+        endJudge(JudgeResult::FAIL, string("Open file Fail"));
+    }
+    inf.setSid(inSid);
+    ouf.setSid(outSid);
+    anf.setSid(ansSid);
+#endif
 }
 
 template<class... Args>
@@ -671,7 +680,10 @@ void endJudge(JudgeResult judgeResult, const char *desc, const Args &... args) {
     write(2, judgeCode.c_str(), judgeCode.length());
     write(2, "\n", 1);
     char msgBuffer[128];
-    int len = snprintf(msgBuffer, 128, "[test %d]", curTestId);
+    int len = 0;
+    if (curTestId > 0) {
+        len = snprintf(msgBuffer, 128, "[test %d]", curTestId);
+    }
     len = snprintf(msgBuffer + len, 128 - len, desc, args...);
     string msgLen = to_string(len);
     write(2, msgLen.c_str(), msgLen.length());
@@ -679,6 +691,19 @@ void endJudge(JudgeResult judgeResult, const char *desc, const Args &... args) {
     write(2, msgBuffer, len);
     exit(0);
 }
+
+void endJudge(JudgeResult judgeResult, const string &desc) {
+    endJudge(judgeResult, "%s", desc.c_str());
+}
+
+void setTestId(int id) {
+    curTestId = id;
+}
+
+void accept(const string &desc) {
+    endJudge(JudgeResult::AC, desc);
+}
+
 
 /// endregion
 
