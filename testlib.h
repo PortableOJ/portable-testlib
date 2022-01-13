@@ -671,9 +671,9 @@ void endJudge(JudgeResult judgeResult, const char *desc, const Args &... args) {
     char msgBuffer[128];
     int len = 0;
     if (curTestId > 0) {
-        len = snprintf(msgBuffer, 128, "[test %d]", curTestId);
+        len = snprintf(msgBuffer, 128, "[test %d]: ", curTestId);
     }
-    len = snprintf(msgBuffer + len, 128 - len, desc, args...);
+    len += snprintf(msgBuffer + len, 128 - len, desc, args...);
     string msgLen = to_string(len);
     write(2, msgLen.c_str(), msgLen.length());
     write(2, "\n", 1);
@@ -690,7 +690,7 @@ void setTestId(int id) {
 }
 
 void accept(const string &desc) {
-    endJudge(JudgeResult::AC, desc);
+    endJudge(JudgeResult::AC, "%s", desc.c_str());
 }
 
 
