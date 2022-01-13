@@ -234,6 +234,12 @@ public:
      * 检查是否已经没有可读内容了，若剩余的字节都是分隔符，则 OK，否则，则直接结束评测
      */
     void readEof();
+
+    /**
+     * 检查是否已经到达文件结束了，若为 true 则文件未结束
+     * @return 文件是否还有字节
+     */
+    bool notEof();
 };
 
 class Result : public InStream {
@@ -447,7 +453,7 @@ string InStream::readString(int maxLen, const string &desc) {
     res.push_back(next(desc));
     for (int i = 1; i < maxLen; ++i) {
         char tmp = next(desc, true);
-        if (isspace(tmp)) break;
+        if (isspace(tmp) || tmp == -1) break;
         res.push_back(tmp);
     }
     if (res.size() == maxLen && !isspace(peek())) {
@@ -542,9 +548,14 @@ double InStream::readReal(double lower, double upper, const string &desc) {
 
 string InStream::readLine(int maxLen, const string &desc) {
     string res;
-    for (int i = 0; i < maxLen; ++i) {
-        char tmp = next(desc, true);
-        if (tmp == '\n') break;
+    char tmp = next(desc);
+    if (tmp == '\n') {
+        return res;
+    }
+    res.push_back(tmp);
+    for (int i = 1; i < maxLen; ++i) {
+        tmp = next(desc, true);
+        if (tmp == '\n' || tmp == -1) break;
         res.push_back(tmp);
     }
     if (res.size() == maxLen && peek() != '\n') {
@@ -566,6 +577,10 @@ void InStream::readEof() {
     if (res != -1) {
         endJudge(waResult, string("The judge is completely over, but there are still bytes in the output"));
     }
+}
+
+bool InStream::notEof() {
+    return peek() != -1;
 }
 
 Result::Result(JudgeResult judgeResult) : InStream(judgeResult) {}
