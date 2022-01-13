@@ -25,16 +25,18 @@ int main(int argc, char *argv[]) {
         cout << tmp << " \n"[i == cnt - 1];
     }
 
-    cnt = ouf.readInt("Number of word");
+    cnt = inf.readInt("Number of word");
     for (int i = 0; i < cnt; ++i) {
         int len = ouf.readInt("Len of word");
         string tmp = ouf.readWord(len, "Word");
         cout << tmp << " \n"[i == cnt - 1];
     }
 
-    cnt = ouf.readInt("Number of line");
+    cnt = inf.readInt("Number of line");
     for (int i = 0; i < cnt; ++i) {
         string tmp = ouf.readLine(100, "Word");
         cout << tmp << " \n"[i == cnt - 1];
     }
+
+    accept("AC");
 }

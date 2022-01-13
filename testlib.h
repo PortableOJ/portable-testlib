@@ -252,7 +252,21 @@ public:
      *
      * @param desc 描述有问题的地方
      */
-    void wrongAnswer(const string &desc);
+    void wrongAnswer(const string &desc) const;
+
+    /**
+     * 判定此结果有问题
+     *
+     * @tparam Args 格式化参数内容
+     * @param format 格式化模版
+     * @param args 格式化内容
+     */
+    template<class ...Args>
+#ifdef __linux__
+    __attribute__((__format__ (__printf__, 2, 0)))
+#endif
+    __attribute__((format (__printf__, 2, 0)))
+    void wrongAnswer(const char *format, const Args &...args) const;
 
     /**
      * 判断是否正确，若满足则继续，若不正确则停止判题
@@ -260,7 +274,7 @@ public:
      * @param flag 需要判定的逻辑表达式
      * @param desc 描述内容
      */
-    void ensure(bool flag, const string &desc);
+    void ensure(bool flag, const string &desc) const;
 
     /**
      * 判断两个值是否相同，若满足则继续，若不正确则停止判题
@@ -271,7 +285,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void equal(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void equal(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 
     /**
      * 判断两个值是否不相同，若满足则继续，若不正确则停止判题
@@ -282,7 +296,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void notEqual(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void notEqual(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 
     /**
      * 判断左值是否严格大于右值，若满足则继续，若不正确则停止判题
@@ -293,7 +307,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void ge(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void ge(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 
     /**
      * 判断左值是否大于等于右值，若满足则继续，若不正确则停止判题
@@ -304,7 +318,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void geq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void geq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 
     /**
      * 判断左值是否小于右值，若满足则继续，若不正确则停止判题
@@ -315,7 +329,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void le(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void le(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 
     /**
      * 判断左值是否小于等于右值，若满足则继续，若不正确则停止判题
@@ -326,7 +340,7 @@ public:
      * @param rDesc 右值的含义
      */
     template<typename T>
-    void leq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc);
+    void leq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const;
 };
 
 /**
@@ -348,11 +362,22 @@ void setTestId(int id);
  */
 void accept(const string &desc);
 
+template<class ...Args>
+#ifdef __linux__
+__attribute__((__format__ (__printf__, 1, 0)))
+#endif
+__attribute__((format (__printf__, 1, 0)))
+void accept(const char *desc, const Args &...args);
+
 /// endregion
 
 /// region 不应该使用的函数等
 
 template<class ...Args>
+#ifdef __linux__
+__attribute__((__format__ (__printf__, 2, 0)))
+#endif
+__attribute__((format (__printf__, 2, 0)))
 void endJudge(JudgeResult judgeResult, const char *desc, const Args &...args);
 
 void endJudge(JudgeResult judgeResult, const string &desc);
@@ -585,53 +610,62 @@ bool InStream::notEof() {
 
 Result::Result(JudgeResult judgeResult) : InStream(judgeResult) {}
 
-void Result::wrongAnswer(const string &desc) {
+void Result::wrongAnswer(const string &desc) const {
     endJudge(waResult, desc);
 }
 
-void Result::ensure(bool flag, const string &desc) {
+template<class ...Args>
+#ifdef __linux__
+__attribute__((__format__ (__printf__, 2, 0)))
+#endif
+__attribute__((format (__printf__, 2, 0)))
+void Result::wrongAnswer(const char *format, const Args &...args) const {
+    endJudge(waResult, format, args...);
+}
+
+void Result::ensure(bool flag, const string &desc) const {
     if (!flag) {
         endJudge(waResult, desc);
     }
 }
 
 template<typename T>
-void Result::equal(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::equal(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs != rhs) {
         endJudge(waResult, "%s and %s is not equal", lDesc.c_str(), rDesc.c_str());
     }
 }
 
 template<typename T>
-void Result::notEqual(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::notEqual(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs == rhs) {
         endJudge(waResult, "%s and %s is equal", lDesc.c_str(), rDesc.c_str());
     }
 }
 
 template<typename T>
-void Result::ge(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::ge(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs <= rhs) {
         endJudge(waResult, "%s is not strictly greater than %s", lDesc.c_str(), rDesc.c_str());
     }
 }
 
 template<typename T>
-void Result::geq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::geq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs < rhs) {
         endJudge(waResult, "%s is not greater than %s", lDesc.c_str(), rDesc.c_str());
     }
 }
 
 template<typename T>
-void Result::le(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::le(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs >= rhs) {
         endJudge(waResult, "%s is not strictly less than %s", lDesc.c_str(), rDesc.c_str());
     }
 }
 
 template<typename T>
-void Result::leq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) {
+void Result::leq(const T &lhs, const T &rhs, const string &lDesc, const string &rDesc) const {
     if (lhs > rhs) {
         endJudge(waResult, "%s is not less than %s", lDesc.c_str(), rDesc.c_str());
     }
@@ -708,6 +742,14 @@ void accept(const string &desc) {
     endJudge(JudgeResult::AC, "%s", desc.c_str());
 }
 
+template<class ...Args>
+#ifdef __linux__
+__attribute__((__format__ (__printf__, 1, 0)))
+#endif
+__attribute__((format (__printf__, 1, 0)))
+void accept(const char *desc, const Args &...args) {
+    endJudge(JudgeResult::AC, desc, args...);
+}
 
 /// endregion
 
