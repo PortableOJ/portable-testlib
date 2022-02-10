@@ -27,14 +27,14 @@ int main(int argc, char *argv[]) {
 
     cnt = inf.readInt("Number of word");
     for (int i = 0; i < cnt; ++i) {
-        int len = ouf.readInt("Len of word");
-        string tmp = ouf.readWord(len, "Word");
+        int len = inf.readInt("Len of word");
+        string tmp = inf.readWord(len, "Word");
         cout << tmp << " \n"[i == cnt - 1];
     }
 
     cnt = inf.readInt("Number of line");
     for (int i = 0; i < cnt; ++i) {
-        string tmp = ouf.readLine(100, "Word");
+        string tmp = inf.readLine(100, "Word");
         cout << tmp << " \n"[i == cnt - 1];
     }
 
