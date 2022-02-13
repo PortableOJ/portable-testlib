@@ -17,6 +17,23 @@
 
 # 使用说明
 
+## 本地测试方法
+以下操作可以让你在本地测试你的 Checker 是否正确
+
+将当前仓库的 testlib 复制到你的 Checker 目录下
+
+在没有宏定义 `ONLINE_JUDGE` 的情况下编译程序，执行编写好的程序，并在运行参数上依次写上
+
+ - 输入内容
+ - 用户输出内容
+ - 标准代码输出内容
+
+例如
+
+```c++
+./example test/test.in test/test.out test/test.ans
+```
+
 ## 编写 Checker 方法
 
 所有的 Checker 默认使用 GNU G++ C++17作为编译器，请依照 C++17 的规范进行编写
