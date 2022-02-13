@@ -84,7 +84,7 @@ public:
      *   不推荐使用
      * </p>
      *
-     * 推荐使用 StreamReader#readDelimiter 来实现跳过分隔符
+     * 推荐使用 InStream#readDelimiter 来实现跳过分隔符
      *
      * @param desc 空格的含义
      */
@@ -97,7 +97,7 @@ public:
      *   不推荐使用
      * </p>
      *
-     * 推荐使用 StreamReader#readDelimiter 来实现跳过分隔符
+     * 推荐使用 InStream#readDelimiter 来实现跳过分隔符
      *
      * @param desc 回车的含义
      */
@@ -110,7 +110,7 @@ public:
      *   不推荐使用
      * </p>
      *
-     * 推荐使用 StreamReader#readDelimiter 来实现跳过分隔符
+     * 推荐使用 InStream#readDelimiter 来实现跳过分隔符
      *
      * @param desc 制表符的含义
      */
@@ -124,14 +124,14 @@ public:
     bool readDelimiter();
 
     /**
-     * 获取一个字符
+     * 获取下面第一个非分隔符字符
      * @param desc 获取的字符的含义
      * @return 被获取的字符
      */
     char readChar(const string &desc);
 
     /**
-     * 获取一个字符，并判断是否在范围内
+     * 获取下面第一个非分隔符字符，并判断是否在范围内
      * @param lower 最小值（包含）
      * @param upper 最大值（不包含）
      * @param desc 获取的字符的含义
@@ -140,7 +140,7 @@ public:
     char readChar(char lower, char upper, const string &desc);
 
     /**
-     * 读取一个字符串，直到遇到一个分隔符，至少包含一个字符，和 StreamReader#readWord 完全等价，更推荐使用 readWord，在语意上更加合理
+     * 读取一个字符串，直到遇到一个分隔符，至少包含一个字符，和 InStream#readWord 完全等价，更推荐使用 readWord，在语意上更加合理
      * @param maxLen 最长长度
      * @param desc 字符串的含义
      * @return 字符串的含义
@@ -148,7 +148,7 @@ public:
     string readString(int maxLen, const string &desc);
 
     /**
-     * 读取一个字符串，直到遇到一个分隔符，至少包含一个字符，和 StreamReader#readString 完全等价
+     * 读取一个字符串，直到遇到一个分隔符，至少包含一个字符，和 InStream#readString 完全等价
      * @param maxLen 最长长度
      * @param desc 字符串的含义
      * @return 字符串的含义
@@ -369,6 +369,12 @@ void setTestId(int id);
  */
 void accept(const string &desc);
 
+/**
+ * 判题结束，并输出 ac
+ * @tparam Args 格式化参数类型
+ * @param desc 格式化模版
+ * @param args 格式化参数
+ */
 template<class ...Args>
 #ifdef __linux__
 __attribute__((__format__ (__printf__, 1, 0)))
